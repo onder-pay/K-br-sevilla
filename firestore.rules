@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Yönetici = `yoneticiler/{uid}` dokümanı olan hesap (Console'dan elle eklenir).
+    function yonetici() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/yoneticiler/$(request.auth.uid));
+    }
+
+    function metin(v, enAz, enCok) {
+      return v is string && v.size() >= enAz && v.size() <= enCok;
+    }
+    function tarih(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    // İlanlar herkese açık (yayındaysa). `dolu` alanında sadece tarih ve yönetici notu var;
+    // misafirin telefonu burada TUTULMAZ. Not alanına kişisel bilgi yazmayın.
+    match /ilanlar/{ilanId} {
+      allow get, list: if resource.data.yayinda == true || yonetici();
+      allow write: if yonetici();
+    }
+
+    // Rezervasyon talepleri: ziyaretçi sadece yeni talep oluşturabilir, okuyamaz/değiştiremez.
+    match /talepler/{talepId} {
+      allow read, update, delete: if yonetici();
+      allow create: if yonetici() || (
+        request.resource.data.keys().hasOnly(['ilanId', 'ilanBaslik', 'giris', 'cikis', 'misafir', 'ad', 'telefon', 'not', 'kod', 'durum', 'olusturma'])
+        && request.resource.data.keys().hasAll(['ilanId', 'giris', 'cikis', 'misafir', 'ad', 'telefon', 'kod', 'durum', 'olusturma'])
+        && request.resource.data.durum == 'beklemede'
+        && request.resource.data.olusturma == request.time
+        && metin(request.resource.data.ad, 2, 80)
+        && metin(request.resource.data.telefon, 7, 25)
+        && metin(request.resource.data.get('not', ''), 0, 500)
+        && metin(request.resource.data.get('ilanBaslik', ''), 0, 120)
+        && metin(request.resource.data.kod, 9, 9)
+        && tarih(request.resource.data.giris) && tarih(request.resource.data.cikis)
+        && request.resource.data.giris < request.resource.data.cikis
+        && request.resource.data.misafir is int
+        && request.resource.data.misafir >= 1 && request.resource.data.misafir <= 30
+        && get(/databases/$(database)/documents/ilanlar/$(request.resource.data.ilanId)).data.yayinda == true
+      );
+    }
+
+    match /yoneticiler/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+      allow list, write: if false; // Sadece Firebase Console'dan
+    }
+  }
+}
