@@ -1,4 +1,3 @@
-# Netlify'da site ayarlarında "Base directory" = kibris-konaklama (ayrı repoya taşınınca gerek kalmaz)
 [build]
   command = "npm run build"
   publish = "dist"

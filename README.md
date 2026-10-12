@@ -6,12 +6,10 @@ ardından ev sahibini telefonla arar veya WhatsApp'tan yazar. Rezervasyon, yöne
 React + Vite + Firebase (Auth, Firestore, Storage). Firebase ayarları yoksa **demo modunda** çalışır
 (veriler tarayıcının localStorage'ında; yönetici şifresi `demo`).
 
-> Bu klasör geçici olarak `vizeevrak` reposunun içinde. Vize projesiyle hiçbir kodu/veriyi paylaşmaz;
-> kendi reposuna olduğu gibi taşınabilir. Firebase için de **ayrı proje** açın.
+> Firebase için vize projesinden **ayrı bir proje** açın; veriler karışmasın.
 
 ## Geliştirme
 ```
-cd kibris-konaklama
 npm install
 npm run dev          # .env yoksa demo modu
 ```
@@ -40,7 +38,6 @@ npm run dev          # .env yoksa demo modu
 5. İlk girişte Firestore "index gerekli" uyarısı verirse hatadaki linke tıklayıp oluşturun.
 
 ## Deploy (Netlify)
-- Base directory: `kibris-konaklama` (ayrı repoya taşınınca boş)
 - Build command: `npm run build` · Publish directory: `dist`
 
 ## Firestore koleksiyonları
